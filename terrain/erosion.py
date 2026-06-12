@@ -210,7 +210,9 @@ class StreamPowerParams:
     n: float = 1.0  # slope exponent
     g_dep: float = 1.0  # deposition coefficient G (Yuan et al. 2019);
     # 0 = detachment-limited (pure incision)
-    k_diff: float = 0.05  # hillslope diffusion [m^2/yr]
+    k_diff: float = 0.4  # hillslope diffusion [m^2/yr]
+    recv_clamp: float = 0.5  # max fraction of drop-to-receiver eroded
+    # per step (1.0 = old hard clamp)
     talus: float = 0.7  # tan(repose angle) for thermal erosion (~35 deg)
     k_thermal: float = 0.5  # fraction of talus excess moved per step
     uplift: float = 0.0  # uniform uplift [m/yr]; or pass a field below
@@ -260,7 +262,7 @@ class StreamPowerErosion:
         if constraints is not None and constraints.peak_mask is not None:
             e_rate = e_rate * (~constraints.peak_mask)
         erode = torch.minimum(e_rate * p.dt,
-                              (z - recv).clamp_min(0.0))  # stability clamp
+                              p.recv_clamp * (z - recv).clamp_min(0.0))
 
         # 4. sediment routing & deposition (transport-limited component)
         deposit = torch.zeros_like(z)
