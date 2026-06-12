@@ -430,7 +430,7 @@ class PipeModelErosion:
                           padding_mode="border", align_corners=True)[0, 0]
 
         # 7. evaporation
-        d2 = d2 * (1.0 - p.evaporation * p.dt).clamp_min(0.0)
+        d2 = d2 * max(0.0, 1.0 - p.evaporation * p.dt)
 
         if constraints is not None:
             z = constraints.apply(z)
