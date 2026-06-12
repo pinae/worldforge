@@ -78,7 +78,79 @@ texture and fans on top of the phase-1 macrostructure.
 - `water_map()` — extracts a river mask from drainage area for rendering.
 - `Constraints` — dataclass holding fixed/river/peak masks, applied each step.
 
-## References
+## Parameter guide
+
+All parameters are exposed on `manage.py erode`. The mental model: the
+terrain you get is the **balance of four competing processes** — uplift
+(builds relief), fluvial incision (carves valleys), diffusion (rounds
+everything), thermal erosion (caps slope angles). Tuning means shifting
+that balance, not searching for one magic number.
+
+### Terrain & discretisation
+
+| Flag | Default | Meaning |
+|---|---|---|
+| `--size` | 512 | Grid resolution. Runtime grows ~quadratically; tune at 256–512, render at 1024+. |
+| `--seed` | 0 | Noise seed. **Fix it while tuning** so changes you see come from parameters, not luck. |
+| `--relief` | 1500 | Initial max elevation [m]. Mostly matters relative to `dx`: relief/dx sets initial slopes. |
+| `--dx` | 100 | Cell size [m]. Physical constants below are calibrated against it; if you change `dx`, expect to retune `k-spl` and `k-diff`. |
+
+### Time stepping
+
+| Flag | Default | Meaning |
+|---|---|---|
+| `--dt` | 1000 | Years per step. Smaller = more accurate, slower. If results look "shattered" (single-cell canyons), `dt` is too large: the per-step incision `K·Aᵐ·Sⁿ·dt` exceeds local relief and the receiver clamp takes over. Rule of thumb: big rivers should erode ≪ their bank height per step. 200 is a safe tuning value. |
+| `--spl-steps` | 120 | Number of stream-power steps. Total simulated time = `dt · spl-steps`. With uplift > 0, run long enough to approach uplift/erosion equilibrium (watch when the figure stops changing between runs). |
+| `--recv-clamp` | 0.5 | Max fraction of the drop to the downstream neighbour a cell may erode per step. Pure stability guard — if it visibly shapes the terrain (slot canyons), lower `dt` instead. |
+
+### Fluvial erosion (the main character)
+
+| Flag | Default | Meaning |
+|---|---|---|
+| `--k-spl` | 2e-5 | Erodibility K in *E = K·Aᵐ·Sⁿ*. The overall speed of valley carving. Think of it as rock softness: granite low, mudstone high. Sweep in factors of ~3. |
+| `--uplift` | 0.0 | Tectonic uplift [m/yr]. **The realism switch.** 0 = decaying dead landscape; 0.001–0.003 (real orogen rates) = mountain range in equilibrium, with concave river profiles and self-renewing relief. Most "real-looking" runs have uplift on. |
+| `--g-dep` | 1.0 | Deposition coefficient G (Yuan et al. 2019). 0 = pure incision (detachment-limited, high-energy mountain look). Higher values fill valley floors → floodplains, fans, gentler basins. |
+| `--mfd-p` | 1.3 | Flow-concentration exponent of the multiple-flow-direction routing. ~1 = diffuse flow, soft broad valleys; 2–3 = flow funnels into fewer, stronger channels → sharper valley/ridge contrast, more alpine. ∞ would be classic D8. |
+| `--accum-iters` | 256 | Sweeps of the flow-accumulation solver. Must exceed the longest river length **in cells**, or distal drainage area (and thus big-river erosion) is silently underestimated. Raise for `--size` > ~1024 or very elongated basins. |
+
+### Hillslope processes (ridge character)
+
+| Flag | Default | Meaning |
+|---|---|---|
+| `--k-diff` | 0.1 | Linear diffusion [m²/yr] (soil creep). Acts strongest at high curvature — i.e. ridgecrests. **The ridge-sharpness dial:** 0.02–0.1 keeps crests crisp (rocky/alpine), 0.3–1.0 gives rounded, soil-mantled hills (old, humid landscapes). Stability requires `k_diff·dt/dx² < 0.25`. |
+| `--talus` | 0.7 | tan of the angle of repose (0.7 ≈ 35°). Thermal erosion flattens anything steeper to this angle, producing planar slopes; where two meet you get a sharp crest. Raise to 0.8–0.9 for jagged high-mountain ridges, lower to ~0.4 for crumbly badlands. |
+| `--k-thermal` | 0.5 | Fraction of the over-talus excess moved per step. Relaxation speed, not the angle itself; rarely needs touching. |
+
+### Detail pass (virtual pipes)
+
+| Flag | Default | Meaning |
+|---|---|---|
+| `--pipe-steps` | 400 | Shallow-water erosion steps after phase 1. **Set to 0 while tuning phase 1** — judge one model at a time. Turn back on at the end for gullies and fine channel texture. Finer knobs (capacity, evaporation, pipe area) live in `PipeParams` in `terrain/erosion.py`. |
+
+### Recipes
+
+```bash
+# Alpine range in uplift/erosion equilibrium: sharp ridges, deep valleys
+uv run python manage.py erode --seed 3 --dt 200 --spl-steps 600 \
+  --uplift 0.002 --k-diff 0.05 --talus 0.85 --mfd-p 2.0 --pipe-steps 0
+
+# Old, gentle hill country: rounded crests, broad filled valleys
+uv run python manage.py erode --seed 3 --dt 500 --spl-steps 400 \
+  --uplift 0.0005 --k-diff 0.6 --g-dep 1.5 --mfd-p 1.1 --pipe-steps 0
+
+# Badlands / heavily gullied
+uv run python manage.py erode --seed 3 --dt 200 --spl-steps 300 \
+  --k-spl 6e-5 --talus 0.4 --k-diff 0.05 --pipe-steps 600
+```
+
+How to read the output figure (`triptych_*.png`): left = "does it look
+like terrain?" (hillshade); middle = "is the drainage dendritic?" (log
+drainage area — crisp branching trees good, blurry radial blobs bad);
+right = where the renderer would draw rivers (area > 98th percentile).
+Every run also writes `params.json`, so keep the runs of good-looking
+seeds/parameter sets around as presets.
+
+
 
 Primary sources the implementation is based on:
 

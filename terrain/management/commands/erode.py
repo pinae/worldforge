@@ -58,6 +58,13 @@ class Command(BaseCommand):
         g.add_argument("--g-dep", type=float, default=1.0)
         g.add_argument("--uplift", type=float, default=0.0)
         g.add_argument("--accum-iters", type=int, default=256)
+        g.add_argument("--recv-clamp", type=float, default=0.5)
+        g.add_argument("--mfd-p", type=float, default=1.3)
+
+        g = parser.add_argument_group("hillslope processes")
+        g.add_argument("--k-diff", type=float, default=0.1)
+        g.add_argument("--talus", type=float, default=0.7)
+        g.add_argument("--k-thermal", type=float, default=0.5)
 
         g = parser.add_argument_group("pipe model phase")
         g.add_argument("--pipe-steps", type=int, default=400)
@@ -81,6 +88,9 @@ class Command(BaseCommand):
                 dx=opt["dx"], dt=opt["dt"], k_spl=opt["k_spl"],
                 g_dep=opt["g_dep"], uplift=opt["uplift"],
                 accum_iters=opt["accum_iters"],
+                recv_clamp=opt["recv_clamp"], mfd_p=opt["mfd_p"],
+                k_diff=opt["k_diff"], talus=opt["talus"],
+                k_thermal=opt["k_thermal"],
             ),
             pipe=PipeParams(dx=opt["dx"]),
         )

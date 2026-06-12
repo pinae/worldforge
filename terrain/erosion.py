@@ -210,7 +210,8 @@ class StreamPowerParams:
     n: float = 1.0  # slope exponent
     g_dep: float = 1.0  # deposition coefficient G (Yuan et al. 2019);
     # 0 = detachment-limited (pure incision)
-    k_diff: float = 0.4  # hillslope diffusion [m^2/yr]
+    k_diff: float = 0.1  # hillslope diffusion [m^2/yr]; low values
+    # keep ridgecrests sharp, high values round them
     recv_clamp: float = 0.5  # max fraction of drop-to-receiver eroded
     # per step (1.0 = old hard clamp)
     talus: float = 0.7  # tan(repose angle) for thermal erosion (~35 deg)
