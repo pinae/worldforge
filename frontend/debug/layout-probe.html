@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>layout probe</title>
+    <style>
+        /* The exact layout rules from theme.css, nothing else. If THIS renders
+           as a proper grid (toolbar left, map middle, panels right, status
+           bottom) then the grid is fine and the real bug is that theme.css
+           isn't loading in the app. If this ALSO stacks vertically, your
+           browser/build is stripping the CSS and we look at the Vite setup. */
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            font-family: Georgia, serif;
+            background: #e4d3ac;
+            color: #3b2a1a;
+        }
+
+        .app {
+            height: 100%;
+            display: grid;
+            grid-template-columns: 56px 1fr 248px;
+            grid-template-rows: 1fr auto;
+            grid-template-areas:
+      "tools map side"
+      "status status status";
+            gap: 8px;
+            padding: 8px;
+        }
+
+        .toolbar {
+            grid-area: tools;
+            background: #efe3c8;
+            border: 1px solid #3b2a1a;
+        }
+
+        .map-area {
+            grid-area: map;
+            background: #d8c094;
+            border: 1px solid #3b2a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .side {
+            grid-area: side;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .panel {
+            flex: 1;
+            background: #efe3c8;
+            border: 1px solid #3b2a1a;
+        }
+
+        .statusbar {
+            grid-area: status;
+            background: #efe3c8;
+            border: 1px solid #3b2a1a;
+            padding: 4px 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="toolbar">tools</div>
+    <div class="map-area">MAP — this box should fill the middle</div>
+    <div class="side">
+        <div class="panel">outliner</div>
+        <div class="panel">inspector</div>
+    </div>
+    <div class="statusbar">status bar across the bottom</div>
+</div>
+</body>
+</html>

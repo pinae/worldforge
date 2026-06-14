@@ -117,4 +117,4 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-WORLDFORGE_HEIGHTMAP = 'runs/20260612-223446/final.npy'
+WORLDFORGE_HEIGHTMAP = BASE_DIR / "runs" / "20260612-223446" / "final.npy"
