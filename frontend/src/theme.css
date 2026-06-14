@@ -1,0 +1,470 @@
+/* theme.css -- the cartographer's table.
+   Palette: parchment & iron-gall ink, wax-seal red, faded Prussian blue,
+   antique gold. Type: IM Fell English (+SC for labels). */
+
+@import url("https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap");
+
+:root {
+    --paper: #efe3c8;
+    --paper-deep: #e4d3ac;
+    --paper-edge: #d8c094;
+    --ink: #3b2a1a;
+    --ink-faint: #7a6347;
+    --seal: #8c2f22;
+    --prussian: #2e5e70;
+    --gold: #a8782d;
+    --serif: "IM Fell English", "Iowan Old Style", Palatino, Georgia, serif;
+    --label: "IM Fell English SC", var(--serif);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body, #root {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    font-family: var(--serif);
+    color: var(--ink);
+    background: var(--paper-deep);
+}
+
+button {
+    font-family: var(--label);
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    border-radius: 2px;
+    padding: 4px 10px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: var(--paper-edge);
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+button:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+button:focus-visible, input:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 1px;
+}
+
+input {
+    font-family: var(--serif);
+    color: var(--ink);
+    background: #f7eed9;
+    border: 1px solid var(--ink-faint);
+    border-radius: 2px;
+    padding: 4px 8px;
+    width: 100%;
+}
+
+/* ---- layout ---------------------------------------------------------- */
+
+.app {
+    height: 100%;
+    display: grid;
+    grid-template-columns: 56px 1fr 248px;
+    grid-template-rows: 1fr auto;
+    grid-template-areas:
+    "tools map side"
+    "status status status";
+    gap: 8px;
+    padding: 8px;
+}
+
+.map-area {
+    grid-area: map;
+    min-width: 0;
+    min-height: 0;
+}
+
+.side {
+    grid-area: side;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+}
+
+/* ---- toolbar --------------------------------------------------------- */
+
+.toolbar {
+    grid-area: tools;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 0;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    box-shadow: inset 0 0 0 3px var(--paper), inset 0 0 0 4px var(--ink-faint);
+}
+
+.tool {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--ink);
+}
+
+.tool:hover {
+    border-color: var(--ink-faint);
+    background: var(--paper-edge);
+}
+
+.tool.active {
+    background: var(--seal);
+    border-color: var(--seal);
+    color: var(--paper);
+    border-radius: 50%;
+}
+
+.tool.run {
+    color: var(--prussian);
+}
+
+.toolbar-rule {
+    width: 26px;
+    border-top: 1px solid var(--ink-faint);
+    margin: 4px 0;
+}
+
+.toolbar-spacer {
+    flex: 1;
+}
+
+/* ---- the map cartouche ----------------------------------------------- */
+
+.map-frame {
+    position: relative;
+    height: 100%;
+    border: 1px solid var(--ink);
+    box-shadow: inset 0 0 0 4px var(--paper), inset 0 0 0 5px var(--ink),
+    inset 0 0 0 7px var(--paper), inset 0 0 0 8px var(--ink-faint);
+    padding: 9px;
+    background: var(--paper);
+}
+
+.map-canvas {
+    height: 100%;
+    width: 100%;
+    background: var(--paper-deep);
+}
+
+.leaflet-container {
+    font-family: var(--serif);
+}
+
+.leaflet-tile {
+    filter: sepia(0.45) saturate(0.75) contrast(0.95) brightness(1.03);
+}
+
+.leaflet-control-zoom a {
+    font-family: var(--label);
+    color: var(--ink) !important;
+    background: var(--paper) !important;
+    border-color: var(--ink) !important;
+}
+
+.compass {
+    position: absolute;
+    right: 22px;
+    top: 20px;
+    color: var(--ink);
+    pointer-events: none;
+    z-index: 800;
+}
+
+/* ---- constraint overlay ---------------------------------------------- */
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 600;
+    pointer-events: none;
+    overflow: visible;
+}
+
+.mark {
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.mark.sel .peak-mark, .mark.sel .fixed-mark {
+    stroke: var(--gold);
+    stroke-width: 2.5;
+}
+
+.mark.sel .river-line {
+    stroke-width: 3.5;
+}
+
+.peak-mark {
+    fill: var(--seal);
+    stroke: var(--ink);
+    stroke-width: 1;
+}
+
+.peak-snow {
+    fill: none;
+    stroke: var(--paper);
+    stroke-width: 1.4;
+}
+
+.fixed-mark {
+    fill: var(--paper);
+    stroke: var(--ink);
+    stroke-width: 1.6;
+}
+
+.fixed-cross {
+    stroke: var(--ink);
+    stroke-width: 1.4;
+}
+
+.river-line {
+    fill: none;
+    stroke: var(--prussian);
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-dasharray: 8 3 2 3; /* old-chart watercourse dashing */
+}
+
+.river-hit {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 14;
+}
+
+.vertex {
+    fill: var(--paper);
+    stroke: var(--prussian);
+    stroke-width: 1.6;
+    cursor: grab;
+}
+
+.vertex.pinned {
+    fill: var(--prussian);
+}
+
+.draft-line {
+    stroke-dasharray: 3 4;
+    opacity: 0.8;
+}
+
+.popover {
+    position: absolute;
+    z-index: 900;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    box-shadow: 2px 3px 0 rgba(59, 42, 26, 0.35);
+    padding: 8px 10px;
+    width: 150px;
+}
+
+.popover label {
+    font-family: var(--label);
+    font-size: 13px;
+    display: block;
+}
+
+.popover-hint {
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    font-style: italic;
+}
+
+/* ---- side panels ------------------------------------------------------ */
+
+.panel {
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    box-shadow: inset 0 0 0 3px var(--paper), inset 0 0 0 4px var(--ink-faint);
+    padding: 12px 14px;
+    overflow: auto;
+}
+
+.outliner {
+    flex: 1.2;
+    min-height: 0;
+}
+
+.inspector {
+    flex: 1;
+    min-height: 0;
+}
+
+.panel h2 {
+    font-family: var(--label);
+    font-size: 15px;
+    font-weight: 400;
+    margin: 0 0 8px;
+    border-bottom: 1px solid var(--ink-faint);
+    padding-bottom: 4px;
+}
+
+.empty {
+    font-style: italic;
+    color: var(--ink-faint);
+    font-size: 13.5px;
+}
+
+.outliner ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 6px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.row:hover {
+    background: var(--paper-edge);
+}
+
+.row.sel {
+    background: var(--paper-edge);
+    box-shadow: inset 2px 0 0 var(--gold);
+}
+
+.row-label {
+    flex: 1;
+}
+
+.ghost {
+    border: none;
+    background: none;
+    padding: 2px;
+    color: var(--ink-faint);
+}
+
+.ghost:hover {
+    color: var(--ink);
+    background: none;
+}
+
+.swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1px solid var(--ink);
+}
+
+.swatch.peak {
+    background: var(--seal);
+}
+
+.swatch.river {
+    background: var(--prussian);
+}
+
+.swatch.fixed {
+    background: var(--paper);
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    font-size: 14px;
+}
+
+.field label {
+    font-family: var(--label);
+    font-size: 13px;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.field em {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--ink-faint);
+}
+
+.vertices {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.vertices li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.vertices span {
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    width: 34px;
+}
+
+.danger {
+    color: var(--seal);
+    border-color: var(--seal);
+    align-self: flex-start;
+}
+
+/* ---- status bar ------------------------------------------------------- */
+
+.statusbar {
+    grid-area: status;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    padding: 3px 10px;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+}
+
+.status-tool {
+    font-family: var(--label);
+    color: var(--seal);
+    min-width: 70px;
+}
+
+.status-hint {
+    flex: 1;
+    font-style: italic;
+    color: var(--ink-faint);
+}
+
+.status-coords {
+    font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+    }
+}
